@@ -5,14 +5,15 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, JavascriptException
 
 GIT_URL = 'https://github.com/Urunar/hh-bot/blob/1ae6f110d0147e0bc0ea013e1bb70310770e40fa/main.py'
 BASE_URL = 'https://dzerzhinskij.hh.ru/account/login?backurl=%2F%3FcustomDomain%3D1&hhtmFrom=main'
 URL = 'https://hh.ru/search/vacancy?employment=full&employment=part&schedule=remote&ored_clusters=true&items_on_page=100&search_field=name&hhtmFrom=vacancy_search_list&hhtmFromLabel=vacancy_search_line&enable_snippets=false&experience=between1And3&text=QA%2C+%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80*'
 LOGIN = os.environ['LOGIN']
 PASSWORD = os.environ['PASSWORD']
-letter = f"Резюме направлено автокликером, написанным мной.\nкод на гитхабе: {GIT_URL}\n\nЕсли мою резюме не подходит, извините, что потратил ваше время"
+# для добавления сопроводительного письма
+LETTER = f"Резюме направлено автокликером, написанным мной.\nкод на гитхабе: {GIT_URL}\n\nЕсли мою резюме не подходит, извините, что потратил ваше время"
 
 class HH_clicker:
 
@@ -48,29 +49,24 @@ class HH_clicker:
 
     def find_vacancies(self):
         self.driver.get(URL)
-        sleep(10)
+        sleep(3)
 
     def ot_click(self):
         self.driver.find_element(By.CSS_SELECTOR, value='a[data-qa="vacancy-serp__vacancy_response"]').click()
-        try:
-            self.driver.find_element(By.CSS_SELECTOR, value='button["data-qa="vacancy-response-letter-toggle""]').click()
-            sleep(0.5)
-            self.driver.find_element(By.CSS_SELECTOR, value='textarea[name="text"]').send_keys()
-        except NoSuchElementException:
-            pass
+
         # найти все кнопки "откликнуться" на странице
-        # all_buttons = self.driver.find_elements(By.CSS_SELECTOR, value='a[data-qa="vacancy-serp__vacancy_response"]')
-        # # если такие есть, длина списка больше 0
-        # if len(all_buttons) > 0:
-        #     # клик на каждую. Если есть поле для сопроводительного письма, вставляем текст, отправляем
-        #     for button in all_buttons:
-        #         button.click()
+        button_exists = True
+        while button_exists:
+            all_buttons = self.driver.find_elements(By.CSS_SELECTOR, value='a[data-qa="vacancy-serp__vacancy_response"]')
 
+            # если такие есть, длина списка больше 0
+            if len(all_buttons) == 0:
+                button_exists = False
+                break
 
-
-
-
-
+            self.driver.find_element(By.CSS_SELECTOR, value='a[data-qa="vacancy-serp__vacancy_response"]').click()
+            self.driver.refresh()
+            sleep(1)
 
 
 
