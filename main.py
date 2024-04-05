@@ -9,11 +9,11 @@ from selenium.common.exceptions import NoSuchElementException, JavascriptExcepti
 
 GIT_URL = 'https://github.com/Urunar/hh-bot/blob/1ae6f110d0147e0bc0ea013e1bb70310770e40fa/main.py'
 BASE_URL = 'https://dzerzhinskij.hh.ru/account/login?backurl=%2F%3FcustomDomain%3D1&hhtmFrom=main'
-URL = 'https://hh.ru/search/vacancy?employment=full&employment=part&schedule=remote&ored_clusters=true&items_on_page=100&search_field=name&hhtmFrom=vacancy_search_list&hhtmFromLabel=vacancy_search_line&enable_snippets=false&experience=between1And3&text=QA%2C+%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80*'
+URL = 'https://hh.ru/search/vacancy?text=QA+or+%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80*+or+quality&salary=&employment=full&employment=part&schedule=remote&ored_clusters=true&items_on_page=100&search_field=name&experience=between1And3&hhtmFrom=vacancy_search_list&hhtmFromLabel=vacancy_search_line'
 LOGIN = os.environ['LOGIN']
 PASSWORD = os.environ['PASSWORD']
 # для добавления сопроводительного письма
-LETTER = f"Резюме направлено автокликером, написанным мной.\nкод на гитхабе: {GIT_URL}\n\nЕсли мою резюме не подходит, извините, что потратил ваше время"
+LETTER = f"Отклик отправлен моим ботом-автокликером в рамках практики с Python/Selenium.\nИсходный код бота здесь: {GIT_URL}"
 
 class HH_clicker:
 
@@ -53,19 +53,25 @@ class HH_clicker:
 
     def ot_click(self):
         self.driver.find_element(By.CSS_SELECTOR, value='a[data-qa="vacancy-serp__vacancy_response"]').click()
-
+        # порядковый номер кнопки
         # найти все кнопки "откликнуться" на странице
         button_exists = True
         while button_exists:
             all_buttons = self.driver.find_elements(By.CSS_SELECTOR, value='a[data-qa="vacancy-serp__vacancy_response"]')
+            print(len(all_buttons))
 
             # если такие есть, длина списка больше 0
             if len(all_buttons) == 0:
                 button_exists = False
                 break
 
-            self.driver.find_element(By.CSS_SELECTOR, value='a[data-qa="vacancy-serp__vacancy_response"]').click()
-            self.driver.refresh()
+            all_buttons[0].click()
+            # если произошел переход на другую страницу -
+            if self.driver.current_url != URL:
+                self.driver.refresh()
+                sleep(1)
+                self.driver.find_element(By.XPATH, value='//*[@id="a11y-main-content"]/div[2]/div/div[10]/div[3]/div/span/div[1]/button').click()
+                self.driver.refresh()
             sleep(1)
 
 
@@ -74,6 +80,8 @@ bot = HH_clicker()
 bot.login()
 bot.find_vacancies()
 bot.ot_click()
+# bot.driver.find_element(By.CSS_SELECTOR, value='a[data-qa="vacancy-serp__vacancy_response"]').click()
+
 
 
 
